@@ -38,5 +38,19 @@ The project is organized into the following directories and files:
 ## **Installation**
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/APIC-Agent.git
+   git clone https://github.com/haviethung3004/APIC_Agent.git
    cd APIC-Agent
+
+2. **Install Dependencies**:
+   ```bash
+    pip install -r requirements.txt
+
+3. **Configure Environment Variables**:
+   ```bash
+   vim .env
+
+   APIC_BASE_URL = YOUR_APIC_BASE_URL
+   APIC_USERNAME = YOUR_APIC_USERNAME
+   APIC_PASSWORD = YOUR_APIC_PASSWORD
+   OPENAI_API_KEY = YOUR_OPENAI_API_KEY
+
