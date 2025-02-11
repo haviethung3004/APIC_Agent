@@ -1,5 +1,9 @@
 .env
 Pipfile
 Pipfile.lock
+*.json
 
 __pycache__/
+
+Langgraph_application/
+

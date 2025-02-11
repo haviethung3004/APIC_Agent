@@ -13,7 +13,7 @@ class APICClient:
       self.base_url = os.getenv('APIC_BASE_URL')
       self.username = os.getenv('APIC_USERNAME')
       self.password = os.getenv('APIC_PASSWORD')
-      self.api_key = os.getenv('DEEPSEEK_API_KEY')
+      self.api_key = os.getenv('FIREWORKS_API_KEY')
       self.session = requests.Session()
       self.session.verify = False
       self.cookie = None
@@ -40,15 +40,42 @@ class APICClient:
     def get_resource(self, url: str) -> dict:
         """Make API call to APIC"""
         if not self.cookie:
-            self.login()
+            self._authenticate()
             
         full_url = f"{self.base_url}{url}"
-        print(full_url)
-        response = requests.get(full_url, cookies=self.cookie, verify=False)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.get(full_url, cookies=self.cookie, verify=False)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as http_err:
+            return print(f"HTTP error occurred: {http_err}")
+        except Exception as err:
+            return print(f"Error occurred: {err}")
+        
+    def post_resouce(self, url: str, payload: Dict) -> dict:
+        """Make API call to APIC"""
+        if not self.cookie:
+            self._authenticate()
+        
+        full_url = f"{self.base_url}{url}"
+        try:
+            response = requests.post(full_url, cookies=self.cookie, json=payload, verify=False)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as http_err:
+            return print(f"HTTP error occurred: {http_err}")
+        except Exception as err:
+            return print(f"Error occurred: {err}")
 
-    
+
+# Usage example
+if __name__ == "__main__":
+    apic_client = APICClient()
+    apic_client._authenticate()
+    url  = "/api/node/class/fvTenant.json"
+    tenants = apic_client.get_resource(url)
+    print(tenants)
+
     
 
     
