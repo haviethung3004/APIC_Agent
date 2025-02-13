@@ -74,7 +74,7 @@ if __name__ == "__main__":
     apic_client = APICClient()
     apic_client._authenticate()
     # url  = "api/node/mo/uni/tn-Migrate1.json?query-target=children&target-subtree-class=fvBD"
-    url = "/api/class/fvCtx.json?query-target-filter=eq(fvCtx.name,\"VRF_700\")"
+    url = "/api/node/class/fvBD.json?query-target-filter=eq(fvBD.name,\"BD_700\")"
     tenants = apic_client.get_resource(url)
     print(tenants)
 

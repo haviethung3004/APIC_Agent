@@ -1,9 +1,7 @@
-# from langchain_unstructured import UnstructuredLoader
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_unstructured import UnstructuredLoader
+# from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_chroma import Chroma
-from langchain_openai import ChatOpenAI
-
+from langchain_pinecone import PineconeVectorStore
 from dotenv import load_dotenv, find_dotenv
 import os
 
@@ -15,51 +13,74 @@ load_dotenv(find_dotenv(), override=True)
 #-------------Spliting and Chunking the PDF-------------
 #-------------------------------------------------------
 def load_pdf_pages(file_path: str):
-    """Synchronously load pages from a PDF file"""
-    loader = PyPDFLoader(file_path)
-    pages = loader.load()  # Synchronous loading
-    return pages
-
-
-
-#-------------------------------------------------------
-#--------Embedding and Saving it to Vecto Store---------
-#-------------------------------------------------------
-def embedding_and_saving(pages):
+    """
+    Synchronously loads and splits a PDF file into pages.
+  
+    Parameters:
+        file_path (str): The path to the PDF file.
     
+    Returns:
+        docs: A list of document objects (each representing a page) loaded via UnstructuredLoader.
+    """
+    loader = UnstructuredLoader(
+    file_path=file_path,
+    api_key=os.getenv("UNSTRUCTURED_API_KEY"),
+    partition_via_api=True
+    )
+    docs = loader.load()  # Synchronous loading
+    return docs
+
+
+
+#-----------------------------------------------------------
+#-Embedding and Saving it to Vector Store in Pinecone-------
+#-----------------------------------------------------------
+def embedding_and_saving(index_name, docs):
+    """
+    Creates embeddings for the provided documents and saves them to a Pinecone vector store.
+  
+    Parameters:
+        index_name: The name of the Pinecone index.
+        docs: The list of documents to be embedded and stored.
+    
+    Returns:
+        vector_store: An instance of the PineconeVectorStore with documents added.
+    """
+    #Create a embedding model using Google Generative AI
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
 
-    vector_store = Chroma(
-    collection_name="REST_API_CONFIG_GUIDE",
-    embedding_function=embeddings,
-    persist_directory="./chroma_langchain_db"
-    )
-
-    vector_store.add_documents(pages)
+    #Create a Pinecone Vector Store instance
+    index = index_name
+    vector_store = PineconeVectorStore(index=index, embedding=embeddings)
+    #Embed and save the documents to the vector store
+    vector_store.add_documents(documents=docs)
 
     return vector_store
-
-#-------------------------------------------------------
-#---------------------TOOL DEFINITION--------------------
-#-------------------------------------------------------
-def create_rag_tool(vector_store):
-    """Create a LangChain Tool for querying and retrieving documents"""
-    from langchain_core.tools import Tool
-    return Tool(
-        name="DocumentRetriever",
-        func=lambda query: query_and_retrieve_document(query, vector_store),
-        description="Useful for querying and retrieving relevant documents based on a user question."
-    )
-
 
 #-------------------------------------------------------
 #------------QUERY AND RETRIVE DOCUMET------------------
 #-------------------------------------------------------
 
-def query_and_retrieve_document(query: str, vector_store):
-    """Query and retrieve documents from the vector store"""
+def query_and_retrieve_document(query: str):
+    """
+    Performs a similarity search on the Pinecone vector store and uses the retrieved context
+    to generate an answer via a language model.
+  
+    Parameters:
+        query (str): The user's query to search in the vector store.
+    
+    Returns:
+        The content of the generated answer from the language model.
+        Returns None if an error occurs.
+    """
+
+    #Check Index Name on Pinecone Database with your actual index name
+    index_name="cisco-rest-apic-configuration"
+    #Create a embedding model using Google Generative AI and vector store
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
+    vector_store = PineconeVectorStore(index_name=index_name,embedding=embeddings, pinecone_api_key=os.getenv("PINECONE_API_KEY"))
     try:
-        retrieved_docs = vector_store.similarity_search(query, k=5)
+        retrieved_docs = vector_store.similarity_search(query=query, k=5)
         docs_content = "\n\n".join(doc.page_content for doc in retrieved_docs)
 
         #Define the prompt template
@@ -96,26 +117,14 @@ def query_and_retrieve_document(query: str, vector_store):
         print(f"Error: {e}")
         return None
 
-
-
 if __name__ == "__main__":
     file_path = "/home/dsu979/Documents/AI_Agents/APIC_Agent/agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf"
 
-    # Step 1: Load PDF pages
-    pages = load_pdf_pages(file_path)
-    if not pages:
-        print("No pages loaded. Exiting.")
-        exit(1)
-    
-    # Step 2: Embed and save to vector store
-    vector_store = embedding_and_saving(pages)
-    if not vector_store:
-        print("Failed to create vector store. Exiting.")
-        exit(1)
-    
-    # Step 3: Query and retrieve documents
-    query = "Share me the payload for example to authenticate APIC using REST API" 
-    answer = query_and_retrieve_document(query, vector_store)
+    #Check Index Name on Pinecone Database
+    index_name = "cisco-rest-apic-configuration"
+    #Load the pages from the PDF
+    query = "For your information, the apic address is 192.168.1.250. I want to get information about Bridge Domain BD_720 in case I don't know exactly about tenant name. Share me the url only"
+    answer = query_and_retrieve_document(index_name=index_name,query=query)
     if answer:
         print(f"Answer: {answer}")
     else:
