@@ -119,12 +119,9 @@ def query_and_retrieve_document(query: str):
 
 if __name__ == "__main__":
     file_path = "/home/dsu979/Documents/AI_Agents/APIC_Agent/agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf"
-
-    #Check Index Name on Pinecone Database
-    index_name = "cisco-rest-apic-configuration"
     #Load the pages from the PDF
     query = "For your information, the apic address is 192.168.1.250. I want to get information about Bridge Domain BD_720 in case I don't know exactly about tenant name. Share me the url only"
-    answer = query_and_retrieve_document(index_name=index_name,query=query)
+    answer = query_and_retrieve_document(query=query)
     if answer:
         print(f"Answer: {answer}")
     else:
