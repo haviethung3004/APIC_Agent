@@ -78,7 +78,10 @@ To set up a **Cisco ACI** Sandbox, follow these steps:
 4. **Configure Cisco ACI connection**:
    If you're using the Cisco ACI Sandbox, make sure you have the API endpoint and credentials from the sandbox setup. Update the `apic_client.py` file to include your connection details.
 
-5. **Run the project**:
+5. **Set up vector db**:
+   Set up vector db for agent_rag_tool(Refer README file in agent)
+
+6. **Run the project**:
 
    Once everything is set up, you can run the project using:
 
