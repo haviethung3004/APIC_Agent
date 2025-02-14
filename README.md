@@ -20,7 +20,6 @@ The **APIC Agent** is an intelligent assistant designed to interact with Cisco's
 - **Fuzzy Matching**: Automatically matches user input to predefined URIs in `urls.json`.
 - **React Agent**: Uses reasoning and action-based decision-making to handle complex queries.
 - **Customizable Prompts**: Provides a flexible prompt template for guiding agent behavior.
-- **Backup Support**: Allows saving fetched data to local files (e.g., `backup.json`).
 
 ---
 
@@ -29,8 +28,7 @@ The project is organized into the following directories and files:
 ├── apic_agent
 │ ├── agent_tool.py # Custom tools for the agent
 │ ├── apic_client.py # APIC API client implementation
-│ ├── init .py # Package initialization
-│ ├── urls.json # Predefined URIs for fuzzy matching
+│ ├── agent_rag_tool.py # rag tool for valid APIC URI
 ├── main.py # Entry point for the application
 ├── README.md # This file
 └── requirements.txt # Python dependencies

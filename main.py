@@ -8,81 +8,56 @@ from langchain_core.tools import tool, Tool
 from langchain_openai import ChatOpenAI
 
 from agent.apic_client import APICClient
-from APIC_Agent.agent.agent_rest_tool import get_apic, get_uri, python_repl
+from agent.agent_rest_tool import get_apic
+from agent.agent_rag_tool import query_and_retrieve_document
 
 
 client = APICClient()
 model = ChatOpenAI(model="qwen-plus", api_key=client.api_key, base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
 
-tools  = [get_apic, get_uri, python_repl]
+tools  = [get_apic, query_and_retrieve_document]
 
 prompt = hub.pull("hwchase17/react")
 langgraph_agent_executor = create_react_agent(model, tools, prompt=prompt)
 
 template = """
-    Role Definition:
-    You are an intelligent assistant designed to support users interacting with the ACI (Application Centric Infrastructure) tool. Your primary objective is to assist users in resolving their queries related to the ACI tool by providing accurate and actionable responses.
-    Firstly, always using the get_uri for the valid uri, then using the get_apic to get the information from the APIC by GET method
-    Action input always must be in the string format
+Role Definition:
+You are an intelligent assistant designed to help users interact with the Cisco ACI (Application Centric Infrastructure) REST API. 
+Your primary goal is to assist users in retrieving accurate information related to ACI resources by leveraging the provided tools.
 
-    Guidelines for Tool interaction:
+Instructions:
+1. **Step 1: Use the `query_and_retrieve_document` Tool**
+   - This tool helps you retrieve the correct URI from the ACI REST API.
+   - Your input for this tool must begin with: "Please share uri only, [your input here]".
+   - Example:
+     - User asks: "How many tenants are on the fabric?"
+     - You should use the tool with the input: "Please share uri only, how can we check the tenants on the fabric?"
+   - Ensure that your query makes sense when using the `query_and_retrieve_document` tool.
+   - **If you fail to retrieve a valid URI, 
+   please retry and ask the `query_and_retrieve_document` agent with the other question to ensure you get the correct URI. 
+   You can share wrong uri for the `query_and_retrieve_document` agent to get other uri or other way to get good result. This URI should provides the JSON format**
+   
 
-    1. get_uri
-        Always use get_uri to export the correct uri
-        Avoid using abbreviated or short-form inputs when calling the get_uri function. Instead, use fully descriptive terms.
-        Sometime user will ask the specific bridge domain or tentant, you can use this format to return result:
-        
+2. **Step 2: Use the `get_apic` Tool**
+   - After retrieving the valid URI from Step 1, use the `get_apic` tool to fetch the actual information from the ACI REST API.
+   - Your input for this tool must begin with: "/api/.....".
+   - Example:
+     - If the URI retrieved from Step 1 is `/api/mo/uni/tn.json`, you should use the tool with the input: `/api/mo/uni/tn.json`.
 
-        tenant_name: The name of the tenant
-        class_name: The name of the class
-
-
-    2. get_apic
-        This tool using for get the information from the APIC by GET method
-        Using the ouput of get_uri for input get_apic. 
-    3. python_repl
-        get_apic will reponse the json format, you can use python_repl to see the output and structure of the json format or caculate the appropriate information.
-        the input for python_repl must be valid python format, 
-        for example: the use ask ("What is 1 plus 1"?) The input should be print(1+1)
-
-    Don't use get_apic tool if you don't sure about the uri
-
-    For example:
-    If the user asks: "Check BDs" , the input for the get_uri function should be standardized as "Bridge Domains" .
-    Similarly, for "List VRFs" , the input should be mapped to "Virtual Routing and Forwarding Instances" .
-    Response Format:
-    Ensure responses are clear, concise, and professional.
-    If additional clarification is needed from the user, politely request it before proceeding.
-    Error Handling:
-    If the get_uri function fails to retrieve a valid URI, inform the user and guide them to refine their query or provide additional context.
-    Example Scenarios:
-
-    Scenario 1:
-    User Query: "Check BDs"
-    Your Input to get_uri: "Bridge Domains"
-
-    Scenario 2:
-    User Query: "List all tenants"
-    Your Input to get_uri: "Tenants"
-
-    Remember that: 
-    1. The get_uri must use first for valid uri.
-    2. tool name always must use  in the string format,
-    3. The output of get_uri will be the input of get_apic
-
-    For now, don't use Python tool, please do it by yourself
+Question:
+{q}
 
 """
+
+
 prompt_template = PromptTemplate.from_template(template)
 
 agent = AgentExecutor(
     model=model,
     tools=tools,
     agent=langgraph_agent_executor,
-    template=prompt_template,
     verbose=True,
-    max_iterations=10,
-    handle_parsing_errors=True
+    max_iterations=10
 )
 
 
@@ -110,7 +85,7 @@ def main():
             # Run the agent with the user query
             with st.spinner("Processing your query..."):
                 try:
-                    response = agent.invoke({"input": query})
+                    response = agent.invoke({"input": prompt_template.format(q=query)})
                     output = response.get("output", "No response received.")
                     st.success("Query executed successfully!")
                     st.subheader("Response:")

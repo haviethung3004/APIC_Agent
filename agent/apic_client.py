@@ -38,20 +38,25 @@ class APICClient:
 
 
     def get_resource(self, url: str) -> dict:
-        """Make API call to APIC"""
-        if not self.cookie:
-            self._authenticate()
-            
-        full_url = f"{self.base_url}{url}"
-        print(full_url)
-        try:
-            response = requests.get(full_url, cookies=self.cookie, verify=False)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.HTTPError as http_err:
-            return print(f"HTTP error occurred: {http_err}")
-        except Exception as err:
-            return print(f"Error occurred: {err}")
+      """Make API call to APIC"""
+      if not self.cookie:
+        self._authenticate()
+      
+      # Ensure the URL starts with a slash
+      if not url.startswith('/'):
+        url = '/' + url        
+      full_url = (f"{self.base_url}{url}").strip()
+      if full_url.endswith('\"'):
+        full_url = full_url[:-1]
+      print(full_url)
+      try:
+        response = requests.get(full_url, cookies=self.cookie, verify=False)
+        response.raise_for_status()
+        return response.json()
+      except requests.exceptions.HTTPError as http_err:
+        return print(f"HTTP error occurred: {http_err}")
+      except Exception as err:
+        return print(f"Error occurred: {err}")
         
     def post_resouce(self, url: str, payload: Dict) -> dict:
         """Make API call to APIC"""
@@ -74,7 +79,7 @@ if __name__ == "__main__":
     apic_client = APICClient()
     apic_client._authenticate()
     # url  = "api/node/mo/uni/tn-Migrate1.json?query-target=children&target-subtree-class=fvBD"
-    url = "/api/node/class/fvBD.json?query-target-filter=eq(fvBD.name,\"BD_700\")"
+    url = "/api/mo/uni/tn-Migrate1/BD-BD_700/subnet.json"
     tenants = apic_client.get_resource(url)
     print(tenants)
 

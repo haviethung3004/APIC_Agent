@@ -3,6 +3,7 @@ from langchain_unstructured import UnstructuredLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from dotenv import load_dotenv, find_dotenv
+from langchain_core.tools import tool
 import os
 
 #Load the environment variables
@@ -61,6 +62,7 @@ def embedding_and_saving(index_name, docs):
 #------------QUERY AND RETRIVE DOCUMET------------------
 #-------------------------------------------------------
 
+@tool
 def query_and_retrieve_document(query: str):
     """
     Performs a similarity search on the Pinecone vector store and uses the retrieved context
@@ -86,7 +88,7 @@ def query_and_retrieve_document(query: str):
         #Define the prompt template
         from langchain_core.prompts import PromptTemplate
         from langchain_openai import ChatOpenAI
-        from apic_client import APICClient
+        from agent.apic_client import APICClient
 
         client = APICClient()
         llm = ChatOpenAI(model="qwen-plus", api_key=client.api_key, base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
@@ -95,9 +97,11 @@ def query_and_retrieve_document(query: str):
             input_variables=["question", "context"],
             template="""
             You are an expert AI assistant that helps users answer questions based on provided context.
-            Use the following pieces of retrieved context to answer the question. Based on the context provided, you need to learn and reply as best as you can.
+            Use the following pieces of retrieved context to answer the question. 
+            Based on the context provided, you need to learn and reply as best as you can.
             If you don't know the answer, Must not answer if you don't know the answer.
             Use three sentences maximum and keep the answer concise.
+            Always provide a approriate url
             
             Question: {question}
             Context: {context}
@@ -120,9 +124,4 @@ def query_and_retrieve_document(query: str):
 if __name__ == "__main__":
     file_path = "/home/dsu979/Documents/AI_Agents/APIC_Agent/agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf"
     #Load the pages from the PDF
-    query = "For your information, the apic address is 192.168.1.250. I want to get information about Bridge Domain BD_720 in case I don't know exactly about tenant name. Share me the url only"
-    answer = query_and_retrieve_document(query=query)
-    if answer:
-        print(f"Answer: {answer}")
-    else:
-        print("Failed to retrieve an answer.")
+    pass
