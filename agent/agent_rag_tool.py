@@ -71,8 +71,8 @@ def embedding_and_saving(index_name, docs):
     #     ) 
 
     # Wait for the index to be ready
-    while not pc.describe_index(index_name).status['ready']:
-        time.sleep(1)
+    # while not pc.describe_index(index_name).status['ready']:
+    #     time.sleep(1)
 
     vector_store = PineconeVectorStore(index=index_name, embedding=embeddings)
     #Embed and save the documents to the vector store
