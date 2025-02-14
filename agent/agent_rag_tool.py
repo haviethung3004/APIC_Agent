@@ -2,9 +2,12 @@ from langchain_unstructured import UnstructuredLoader
 # from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
+# from pinecone.grpc import PineconeGRPC as Pinecone
+# from pinecone import ServerlessSpec
 from dotenv import load_dotenv, find_dotenv
 from langchain_core.tools import tool
 import os
+import time
 
 #Load the environment variables
 load_dotenv(find_dotenv(), override=True)
@@ -13,7 +16,7 @@ load_dotenv(find_dotenv(), override=True)
 #-------------------------------------------------------
 #-------------Spliting and Chunking the PDF-------------
 #-------------------------------------------------------
-def load_pdf_pages(file_path: str):
+def load_pdf_pages(file_path: list[str]):
     """
     Synchronously loads and splits a PDF file into pages.
   
@@ -50,16 +53,31 @@ def embedding_and_saving(index_name, docs):
     #Create a embedding model using Google Generative AI
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
 
-    #Create a Pinecone Vector Store instance
-    index = index_name
-    vector_store = PineconeVectorStore(index=index, embedding=embeddings)
+    # #Create a Pinecone Vector Store instance
+    # pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    # if not pc.has_index(index_name):
+    #     pc.create_index(
+    #         name=index_name,
+    #         dimension=1024,
+    #         metric="cosine",
+    #         spec=ServerlessSpec(
+    #             cloud="aws", 
+    #             region="us-east-1"
+    #         ) 
+    #     ) 
+
+    # Wait for the index to be ready
+    while not pc.describe_index(index_name).status['ready']:
+        time.sleep(1)
+
+    vector_store = PineconeVectorStore(index=index_name, embedding=embeddings)
     #Embed and save the documents to the vector store
     vector_store.add_documents(documents=docs)
 
     return vector_store
 
 #-------------------------------------------------------
-#------------QUERY AND RETRIVE DOCUMET------------------
+#------------QUERY AND RETRIVE DOCUMENT------------------
 #-------------------------------------------------------
 
 @tool
@@ -77,12 +95,12 @@ def query_and_retrieve_document(query: str):
     """
 
     #Check Index Name on Pinecone Database with your actual index name
-    index_name="cisco-rest-apic-configuration"
+    index_name="rest-apic-configuration"
     #Create a embedding model using Google Generative AI and vector store
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
     vector_store = PineconeVectorStore(index_name=index_name,embedding=embeddings, pinecone_api_key=os.getenv("PINECONE_API_KEY"))
     try:
-        retrieved_docs = vector_store.similarity_search(query=query, k=5)
+        retrieved_docs = vector_store.similarity_search(query=query, k=10)
         docs_content = "\n\n".join(doc.page_content for doc in retrieved_docs)
 
         #Define the prompt template
@@ -122,6 +140,8 @@ def query_and_retrieve_document(query: str):
         return None
 
 if __name__ == "__main__":
-    file_path = "/home/dsu979/Documents/AI_Agents/APIC_Agent/agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf"
+    # file_path = "/home/dsu979/Documents/AI_Agents/APIC_Agent/agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf"
     #Load the pages from the PDF
-    pass
+
+    respones = query_and_retrieve_document("How can get tenant information using REST API?")
+    print(respones)
