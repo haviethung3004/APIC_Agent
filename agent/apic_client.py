@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 from typing import Dict
 
 # load environment variables OPEN API KEY
-load_dotenv(find_dotenv())
+load_dotenv(find_dotenv(), override=True)
 
 class APICClient:
     """Manange APIC Connect interactions with automate token refresh"""

@@ -4,6 +4,10 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 # from pinecone.grpc import PineconeGRPC as Pinecone
 # from pinecone import ServerlessSpec
+# Chat history in langchain
+from langchain.memory import ConversationBufferMemory
+from langchain_core.prompts import MessagesPlaceholder
+
 from dotenv import load_dotenv, find_dotenv
 from langchain_core.tools import tool
 import os
@@ -99,12 +103,18 @@ def query_and_retrieve_document(query: str):
     #Create a embedding model using Google Generative AI and vector store
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
     vector_store = PineconeVectorStore(index_name=index_name,embedding=embeddings, pinecone_api_key=os.getenv("PINECONE_API_KEY"))
+
+    memory = ConversationBufferMemory(
+        memory_key='chat_history',
+        return_messages=True
+    )
+
     try:
         retrieved_docs = vector_store.similarity_search(query=query, k=10)
         docs_content = "\n\n".join(doc.page_content for doc in retrieved_docs)
 
         #Define the prompt template
-        from langchain_core.prompts import PromptTemplate
+        from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
         from langchain_openai import ChatOpenAI
         from agent.apic_client import APICClient
 
