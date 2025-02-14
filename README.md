@@ -89,17 +89,6 @@ To set up a **Cisco ACI** Sandbox, follow these steps:
    streamlit run main.py
    ```
 
-## Usage
-
-The `main.py` file serves as the entry point for the application. It interacts with Cisco ACI using the provided API keys and LangChain to automate tasks.
-
-### Example
-
-```bash
-python main.py --action <action_name> --parameters <parameters>
-```
-
-Replace `<action_name>` and `<parameters>` with the desired actions and parameters for the task you wish to perform.
 
 ## Contributing
 
