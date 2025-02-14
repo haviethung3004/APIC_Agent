@@ -1,6 +1,6 @@
 # APIC Agent
 
-This project integrates with **Cisco ACI (Application Centric Infrastructure)** using LangChain and four different API keys for various functionalities. The goal is to interact with Cisco ACI for better automation, configuration, and management.
+This project integrates with **Cisco ACI (Application Centric Infrastructure)** using **LangChain** and four different API keys for various functionalities.
 
 ## API Keys Required
 
