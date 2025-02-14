@@ -97,11 +97,3 @@ Feel free to fork the repository and submit pull requests. If you encounter any 
 ### Code of Conduct
 
 By contributing to this project, you agree to adhere to our code of conduct.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
-
----
-
-Now, the README reflects the specific roles of the APIs in your project. Let me know if there's anything else you'd like to add or adjust!
