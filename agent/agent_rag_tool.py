@@ -62,7 +62,7 @@ def embedding_and_saving(index_name, docs):
     if not pc.has_index(index_name):
         pc.create_index(
             name=index_name,
-            dimension=1024,
+            dimension=738,
             metric="cosine",
             spec=ServerlessSpec(
                 cloud="aws", 
@@ -76,7 +76,7 @@ def embedding_and_saving(index_name, docs):
 
     vector_store = PineconeVectorStore(index=index_name, embedding=embeddings)
     #Embed and save the documents to the vector store
-    vector_store.add_documents(documents=docs)
+    vector_store.from_documents(documents=docs)
 
     return vector_store
 
@@ -122,7 +122,7 @@ def query_and_retrieve_document(query: str):
             You are an expert AI assistant that helps users answer questions based on provided context.
             Use the following pieces of retrieved context to answer the question. 
             Based on the context provided, you need to learn and reply as best as you can.
-            If you don't know the answer, Must not answer if you don't know the answer.
+            If you don't know the answer, Do not answer if you don't know the answer.
             Use three sentences maximum and keep the answer concise.
             Always provide a approriate url
             
@@ -145,8 +145,13 @@ def query_and_retrieve_document(query: str):
         return None
 
 if __name__ == "__main__":
-    # file_path = "/home/dsu979/Documents/AI_Agents/APIC_Agent/agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf"
-    #Load the pages from the PDF
+
+    filepath = ["agent/content/docs/cisco-apic-rest-api-configuration-guide-42x-and-later.pdf", "agent/content/docs/example_urls.txt"]
+    index_name = "rest-apic-configuration"
+
+    docs = load_pdf_pages(filepath=filepath)
+
+    vector_store = embedding_and_saving(index_name=index_name, docs=docs)
 
     respones = query_and_retrieve_document("How can get tenant information using REST API?")
     print(respones)
