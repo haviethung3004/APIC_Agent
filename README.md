@@ -65,14 +65,13 @@ To set up a **Cisco ACI** Sandbox, follow these steps:
 3. **Set up environment variables**:
    Ensure you have the following API keys set as environment variables:
 
-   - `UNSTRUCTURED_LOADER_API_KEY`
+   - `UNSTRUCTURED_API_KEY`
    - `GEMINI_API_KEY`
    - `PINECONE_API_KEY`
-   - `CHAT_OPENAI_API_KEY`
+   - `OPENAI_API_KEY`
    - `APIC_BASE_URL`
    - `APIC_USERNAME`
    - `APIC_PASSWORD`
-   - `ALIBABA_API_KEY`
 
    Create a `.env` file and save the these API_KEY 
 

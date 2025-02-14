@@ -2,8 +2,8 @@ from langchain_unstructured import UnstructuredLoader
 # from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-# from pinecone.grpc import PineconeGRPC as Pinecone
-# from pinecone import ServerlessSpec
+from pinecone import Pinecone, ServerlessSpec
+import pinecone
 # Chat history in langchain
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import MessagesPlaceholder
@@ -57,22 +57,22 @@ def embedding_and_saving(index_name, docs):
     #Create a embedding model using Google Generative AI
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
 
-    # #Create a Pinecone Vector Store instance
-    # pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    # if not pc.has_index(index_name):
-    #     pc.create_index(
-    #         name=index_name,
-    #         dimension=1024,
-    #         metric="cosine",
-    #         spec=ServerlessSpec(
-    #             cloud="aws", 
-    #             region="us-east-1"
-    #         ) 
-    #     ) 
+    #Create a Pinecone Vector Store instance
+    pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    if not pc.has_index(index_name):
+        pc.create_index(
+            name=index_name,
+            dimension=1024,
+            metric="cosine",
+            spec=ServerlessSpec(
+                cloud="aws", 
+                region="us-east-1"
+            ) 
+        ) 
 
     # Wait for the index to be ready
-    # while not pc.describe_index(index_name).status['ready']:
-    #     time.sleep(1)
+    while not pc.describe_index(index_name).status['ready']:
+        time.sleep(1)
 
     vector_store = PineconeVectorStore(index=index_name, embedding=embeddings)
     #Embed and save the documents to the vector store
@@ -103,11 +103,6 @@ def query_and_retrieve_document(query: str):
     #Create a embedding model using Google Generative AI and vector store
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=os.getenv("GEMINI_API_KEY"))
     vector_store = PineconeVectorStore(index_name=index_name,embedding=embeddings, pinecone_api_key=os.getenv("PINECONE_API_KEY"))
-
-    memory = ConversationBufferMemory(
-        memory_key='chat_history',
-        return_messages=True
-    )
 
     try:
         retrieved_docs = vector_store.similarity_search(query=query, k=10)
