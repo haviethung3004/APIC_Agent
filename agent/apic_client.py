@@ -18,7 +18,6 @@ class APICClient:
       self.session.verify = False
       self.cookie = None
       disable_warnings()
-      self._authenticate()
 
     def _authenticate(self) -> None:
       """Obtain and set access tolken"""
