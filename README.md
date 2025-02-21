@@ -68,7 +68,7 @@ To set up a **Cisco ACI** Sandbox, follow these steps:
    - `UNSTRUCTURED_API_KEY`
    - `GEMINI_API_KEY`
    - `PINECONE_API_KEY`
-   - `OPENAI_API_KEY`
+   - `OPENAI_API_KEY` # This case, I am using qwen-plus from alibaba, change it to appropriate key if you are using other models
    - `APIC_BASE_URL`
    - `APIC_USERNAME`
    - `APIC_PASSWORD`
