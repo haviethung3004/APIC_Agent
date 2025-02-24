@@ -1,3 +1,6 @@
+grandalf
+IPython
+langgraph
 langchain
 langchain-core
 streamlit
